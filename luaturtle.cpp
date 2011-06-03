@@ -1,3 +1,5 @@
+// Demonstrate building a 'lua ffi' through a simple Turtle drawing app.
+// The Turtle is navigated using commands issued in an external lua script. 
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -29,7 +31,7 @@ struct RGB
   uint8_t r, g, b; 
 };
 
-
+// Basic canvas for line-drawing.
 template<typename T>
 class Canvas
 {
@@ -94,6 +96,7 @@ class Canvas
     std::vector<T> m_pixels;
 };
 
+// Turtle model 
 struct Turtle
 {
   float x;
@@ -105,6 +108,7 @@ typedef std::tr1::shared_ptr<Canvas<RGB> > CanvasPtr;
 CanvasPtr gCanvas;
 static Turtle gTurtle = {0.0f,0.0f,0.0f};
 
+// Move the Turtle forward without drawing
 int Forward(int distance)
 {
   float heading_r = toRadians(gTurtle.heading);
@@ -113,6 +117,7 @@ int Forward(int distance)
   return distance;
 }
 
+// Move the Turtle forward whilst drawing
 int Draw(int distance)
 {
   float heading_r = toRadians(gTurtle.heading);
@@ -124,18 +129,22 @@ int Draw(int distance)
   return distance;
 }
 
+// Pivot the Turtle left
 int Left(int degrees)
 {
   gTurtle.heading += degrees;
   return degrees;
 }
 
+// Pivot the Turtle right
 int Right(int degrees)
 {
   gTurtle.heading -= degrees;
   return degrees;
 }
 
+// Marshalling wrappers for our model functions to separate the 
+// boiler-plate binding code. For real code use a binding generator.
 static int l_Left(lua_State *L)
 {
   int n = lua_gettop(L);
@@ -215,8 +224,6 @@ static int l_Origin(lua_State *L)
   gTurtle.x = lua_tointeger(L, 1);
   gTurtle.y = lua_tointeger(L, 2);
   gTurtle.heading = lua_tointeger(L, 3);
-  std::cout << "x=" << gTurtle.x << ",y=" << gTurtle.y << ",h=" 
-    << gTurtle.heading << endl;
   return 0;
 }
 
@@ -230,13 +237,12 @@ static int l_Save(lua_State *L)
   }
   string saveAs = lua_tostring(L, 1);
   saveAs += ".tga";
-  std::cout << "Saving as " << saveAs << endl;
   int result = gCanvas->save(saveAs);
   lua_pushboolean(L, result);
   return 1;
 }
 
-// Demonstrate invoking a lua function
+// Contrived demonstration of invoking an external Lua function.
 bool turtleEvent(lua_State* L, const string& event)
 {
   lua_getfield(L, LUA_GLOBALSINDEX, "event");
@@ -260,8 +266,10 @@ int main(int argc, char **argv)
     std::cerr << "'" << source << "' not found." << endl;
     return 1;
   }
+
   lua_State *L = luaL_newstate();
   luaL_openlibs(L);
+
   gCanvas = CanvasPtr(new Canvas<RGB>(512, 512));
 
   lua_register(L, "Origin", l_Origin);

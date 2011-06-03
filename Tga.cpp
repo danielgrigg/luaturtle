@@ -1,5 +1,3 @@
-// Tga functions derived from the excellent OpenGL Superbible
-//
 #include "Tga.h"
 #include <stdio.h>
 
