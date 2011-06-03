@@ -11,4 +11,7 @@ set(SOURCES ${SOURCES} ${PROJ}.cpp)
 set(SOURCES ${SOURCES} Tga.cpp)
 add_executable(${PROJ} ${SOURCES})
 target_link_libraries(${PROJ} general lua) # optimized debug
+IF(UNIX)
+target_link_libraries(${PROJ} general dl) # optimized debug
+ENDIF(UNIX)
 install (TARGETS ${PROJ} DESTINATION bin)
