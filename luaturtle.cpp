@@ -1,5 +1,13 @@
-// Demonstrate building a 'lua ffi' through a simple Turtle drawing app.
-// The Turtle is navigated using commands issued in an external lua script. 
+/*  \author Daniel Grigg                                                                       
+ *  \date 22/05/11.
+ *  luaturtle
+ *  Copyright 2011 Daniel Grigg. All rights reserved.
+ *
+ *  Implements a simple Turtle-like DSL in LUA against a C++ backend.  The Lua
+ *  files specify turtle commands such as forward, left, etc while the backend
+ *  maintains the turtle's state, interprets commands and renders the results
+ *  to a TGA image.
+ */
 #include <iostream>
 #include <fstream>
 #include <string>
@@ -31,7 +39,7 @@ struct RGB
   uint8_t r, g, b; 
 };
 
-// Basic canvas for line-drawing.
+// Cute little canvas for line-drawing.
 template<typename T>
 class Canvas
 {
@@ -88,15 +96,16 @@ class Canvas
       return TgaWrite(fileName.c_str(), sizeof(T)*8, width(), height(),
           (const uint8_t*)&m_pixels[0]);
     }
-
   private:
-
     int m_width;
     int m_height;
     std::vector<T> m_pixels;
 };
 
-// Turtle model 
+typedef std::tr1::shared_ptr<Canvas<RGB> > CanvasPtr;
+CanvasPtr gCanvas;
+
+// The 'model'
 struct Turtle
 {
   float x;
@@ -104,8 +113,6 @@ struct Turtle
   int heading;
 };
 
-typedef std::tr1::shared_ptr<Canvas<RGB> > CanvasPtr;
-CanvasPtr gCanvas;
 static Turtle gTurtle = {0.0f,0.0f,0.0f};
 
 // Move the Turtle forward without drawing
@@ -285,4 +292,3 @@ int main(int argc, char **argv)
   turtleEvent(L, "finished");
   return 0;
 }
-
